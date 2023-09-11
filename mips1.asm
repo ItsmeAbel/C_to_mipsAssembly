@@ -11,13 +11,14 @@ main:
 	lw $a1, antal
 	jal skriv
 
-	#nollställer
+	#nollställer vek och b
 	li $a0, 0
 	li $a1, 0
 	
+	#hoppar till quicksort
 	la $a0, vek
 	lw $s0, antal
-	addi $a1, $s0, -1 #b
+	addi $a1, $s0, -1 #b=antal-1
 	li $a2, 0 #a
 	jal quicksort
 
@@ -25,12 +26,13 @@ main:
 	lw $a1, antal
 	jal skriv
 
+	#avslutar programmet
 	li $v0, 10
 	syscall
 #---------------------------------Skriv-----------------------------------------------------
 skriv:
 #förbreda parametrarna
-#a0 till antal, a1 till v[]
+#a0 till vek, a1 till antal
 	addi $t0, $zero, 0 #i
 	move $t3, $a1	#flyttar Antal till t3 registern
 	move $t4, $a0	#flyttar Vek till t4 registern
@@ -40,7 +42,7 @@ skriv:
 	syscall
 
 for:
-   	beq $t0, $t3, endfor
+   	beq $t0, $t3, endfor  #om i==antal
    	#skriver ut elementet
 	li $v0, 1
 	lw $a0, 0($t4)
@@ -54,7 +56,6 @@ for:
    #går till nästa adress i arrayen
    	addi $t4, $t4, 4
    	addi $t0, $t0, 1 #ökar i med 1
-   
 	j for
 
 endfor: 
@@ -62,6 +63,12 @@ endfor:
 	addi $v0, $zero, 4
    	la $a0, newline
    	syscall
+   	
+   	#nollställer t registrerna
+   	li $t0, 0
+   	li $t3, 0
+   	li $t4, 0
+   	
    	jr $ra
 #-----------------------------Partition-------------------------------------   	
 partition:
@@ -145,12 +152,13 @@ endif0:
 quicksort:
 
 	#Förbreder stacken
-	subu $sp, $sp, 20 #går ner i stacken
+	subu $sp, $sp, 24 #går ner i stacken
 	sw $ra, 16($sp) #retur adress för att kunna hoppa tillbaka till Main
 	sw $s7, 12($sp) # k
 	sw $a0, 8($sp) #vek
 	sw $a2, 4($sp) #a  ,a = 0 i början
 	sw $a1, 0($sp) #b  ,b = antal - 1, som är 9 i början
+
 	
 	move $t1, $a2
 	move $t2, $a1
@@ -161,24 +169,24 @@ quicksort:
 	jal partition
 	
 	move $s7, $v0
-	addu $s7, $s7, -1
 	lw $a0, 8($sp)
 	lw $a2, 4($sp)
 	lw $a1, 0($sp)
-	move $a1, $s7
+	addu $t0, $s7, -1
+	move $a1, $t0
 	jal quicksort
 	
 	
-	addi $s7, $s7, 1
 	lw $a0, 8($sp)
 	lw $a2, 4($sp)
-	move $a2, $s7
 	lw $a1, 0($sp)
+	addi $t0, $s7, 1
+	move $a2, $t0
 	jal quicksort
 	
 	
 endif: 
 	lw $ra, 16($sp) #hämtar retur addressen från stacken
 	lw $s7, 12($sp)
-	addu $sp, $sp, 20  #går upp i stacken
+	addu $sp, $sp, 24 #går upp i stacken
 	jr $ra
