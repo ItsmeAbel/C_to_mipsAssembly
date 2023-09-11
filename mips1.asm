@@ -11,10 +11,14 @@ main:
 	lw $a1, antal
 	jal skriv
 
+	#nollställer
+	li $a0, 0
+	li $a1, 0
+	
 	la $a0, vek
 	lw $s0, antal
-	addi $a1, $s0, -1
-	li $a2, 0 
+	addi $a1, $s0, -1 #b
+	li $a2, 0 #a
 	jal quicksort
 
 	la $a0, vek
@@ -36,7 +40,7 @@ skriv:
 	syscall
 
 for:
-   	bge $t0, $t3, endfor
+   	beq $t0, $t3, endfor
    	#skriver ut elementet
 	li $v0, 1
 	lw $a0, 0($t4)
@@ -67,11 +71,11 @@ partition:
 	li $s3, 0 #upper
 	li $s4, 0 #temp
 	
-	sll $t0, $a1, 2
+	sll $t0, $a2, 2
 	addu $t0, $a0, $t0
 	lw $s1, 0($t0) #pivot = v[a]
-	addu $s2, $a1, 1 #lower = a + 1;
-	move $s3, $a2 #upper = b;
+	addu $s2, $a2, 1 #lower = a + 1;
+	move $s3, $a1 #upper = b;
 	
 do: 
 	
@@ -122,7 +126,7 @@ endif0:
         addu $t1, $a0, $t0 #adressen till v[upper]
         lw $s4, 0($t1)#temp = v[upper]
        
-        sll $t0, $a1, 2 
+        sll $t0, $a2, 2 
 	add $t2, $a0, $t0 #adressen till v[a]
 	lw $t3, 0($t2)#t3 = v[a]
 	
@@ -130,7 +134,7 @@ endif0:
 	addu $t0, $a0, $t0
 	sw $t3, 0($t0)#v[upper] = v[a];
 	
-	sll $t0, $a1, 2
+	sll $t0, $a2, 2
 	addu $t0, $a0, $t0
 	sw $s4, 0($t0) #v[a] = temp;
 	
@@ -141,7 +145,7 @@ endif0:
 quicksort:
 
 	#Förbreder stacken
-	subu $sp, $sp, 24 #går ner i stacken
+	subu $sp, $sp, 20 #går ner i stacken
 	sw $ra, 16($sp) #retur adress för att kunna hoppa tillbaka till Main
 	sw $s7, 12($sp) # k
 	sw $a0, 8($sp) #vek
@@ -152,27 +156,29 @@ quicksort:
 	move $t2, $a1
 	bge $t1,$t2, endif
 	lw $a0, 8($sp) #v[]
-	lw $a2, 0($sp) #a
-	lw $a1, 4($sp) #b
+	lw $a2, 4($sp) #a
+	lw $a1, 0($sp) #b
 	jal partition
 	
 	move $s7, $v0
-	addi $s7, $s7, -1
+	addu $s7, $s7, -1
 	lw $a0, 8($sp)
-	lw $a2, 0($sp)
+	lw $a2, 4($sp)
+	lw $a1, 0($sp)
 	move $a1, $s7
 	jal quicksort
 	
 	
 	addi $s7, $s7, 1
 	lw $a0, 8($sp)
+	lw $a2, 4($sp)
 	move $a2, $s7
-	lw $a1, 4($sp)
+	lw $a1, 0($sp)
 	jal quicksort
 	
 	
 endif: 
 	lw $ra, 16($sp) #hämtar retur addressen från stacken
 	lw $s7, 12($sp)
-	addu $sp, $sp, 24  #går upp i stacken
+	addu $sp, $sp, 20  #går upp i stacken
 	jr $ra
